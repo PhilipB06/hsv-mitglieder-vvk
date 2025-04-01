@@ -11,7 +11,7 @@ const fetchMatchData = async () => {
     const response = await axios.get('https://www.hsv.de/tickets/einzelkarten/ticketinfos-termine');
     const html = response.data;
     const $ = cheerio.load(html);
-    const matches: any[] = [];
+    const matches = [];
 
     $('table tbody tr').each((index, element) => {
       const cells = $(element).find('td');
@@ -25,19 +25,17 @@ const fetchMatchData = async () => {
 
       const awayTeam = awayTeamCell.replace('Ticketinfos', '').trim();
 
-      let isRange = false;
-      let matchDateInfo: DateTime | null = null;
+      // Range nur, wenn zwei verschiedene Datumsangaben vorhanden sind
+      const dateMatches = dateTextRaw.match(/(\d{2}\.\d{2}\.\d{2,4})/g);
+      const isRange = dateMatches && dateMatches.length === 2 && dateMatches[0] !== dateMatches[1];
+
+      let matchDateInfo = null;
       let matchTime = 'unbekannt';
 
-      // Zeitraum-Erkennung nur, wenn zwei verschiedene Datumsangaben vorhanden
-      const dateMatches = dateTextRaw.match(/(\d{2}\.\d{2}\.\d{2,4})/g);
-      if (dateMatches && dateMatches.length === 2 && dateMatches[0] !== dateMatches[1]) {
-        isRange = true;
-      } else {
-        // Einzelnes Datum mit optionaler Uhrzeit
+      if (!isRange) {
         const dateMatch = dateTextRaw.match(/(\d{2})\.(\d{2})\.(\d{2,4})/);
         if (dateMatch) {
-          const [_, day, month, year] = dateMatch;
+          const [, day, month, year] = dateMatch;
           const fullYear = year.length === 2 ? `20${year}` : year;
 
           const timeMatch = dateTextRaw.match(/(\d{2})[:\.](\d{2}) Uhr/);
@@ -55,9 +53,9 @@ const fetchMatchData = async () => {
 
       // Vorverkaufsdatum parsen
       const preSaleMatch = preSaleText.match(/Mitgl.-VVK: (\d{2})\.(\d{2})\.(\d{2,4})(?: ab (\d{2}:\d{2}))?/);
-      let preSaleDate: DateTime | null = null;
+      let preSaleDate = null;
       if (preSaleMatch) {
-        const [_, preDay, preMonth, preYear, preTime] = preSaleMatch;
+        const [, preDay, preMonth, preYear, preTime] = preSaleMatch;
         const fullPreYear = preYear.length === 2 ? `20${preYear}` : preYear;
         const [hour, minute] = preTime ? preTime.split(':') : ['10', '00'];
 
