@@ -14,12 +14,7 @@
     "axios": "^1.7.2",
     "cheerio": "^1.0.0-rc.12",
     "express": "^4.19.2",
-    "ical-generator": "^7.1.0"
-  },
-  "devDependencies": {
-    "express": "^4.17.1",
-    "ical-generator": "^2.0.0",
-    "axios": "^0.21.1",
-    "cheerio": "^1.0.0-rc.10"
+    "ical-generator": "^7.1.0",
+    "luxon": "^3.4.4"
   }
 }
