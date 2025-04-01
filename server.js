@@ -15,7 +15,7 @@ const fetchMatchData = async () => {
 
     $('table tbody tr').each((index, element) => {
       const cells = $(element).find('td');
-      const dateText = $(cells[1]).text().trim().replace(/\s+/g, ' ');
+      const dateTextRaw = $(cells[1]).text().trim().replace(/\s+/g, ' ');
       const homeTeam = $(cells[2]).text().trim();
       const awayTeamCell = $(cells[4]).text().trim();
       const preSaleText = $(cells[5]).text().trim();
@@ -25,20 +25,22 @@ const fetchMatchData = async () => {
 
       const awayTeam = awayTeamCell.replace('Ticketinfos', '').trim();
 
-      // Ranges erkennen – nur wenn ZWEI unterschiedliche Datumsangaben vorhanden sind
-      const dateParts = dateText.split('-').map(p => p.trim());
-      const isRange = dateParts.length === 2 && dateParts[0] !== dateParts[1];
-
+      let isRange = false;
       let matchDateInfo: DateTime | null = null;
       let matchTime = 'unbekannt';
 
-      if (!isRange) {
-        const dateMatch = dateText.match(/(\d{2})\.(\d{2})\.(\d{2,4})/);
+      // Zeitraum-Erkennung nur, wenn zwei verschiedene Datumsangaben vorhanden
+      const dateMatches = dateTextRaw.match(/(\d{2}\.\d{2}\.\d{2,4})/g);
+      if (dateMatches && dateMatches.length === 2 && dateMatches[0] !== dateMatches[1]) {
+        isRange = true;
+      } else {
+        // Einzelnes Datum mit optionaler Uhrzeit
+        const dateMatch = dateTextRaw.match(/(\d{2})\.(\d{2})\.(\d{2,4})/);
         if (dateMatch) {
           const [_, day, month, year] = dateMatch;
           const fullYear = year.length === 2 ? `20${year}` : year;
 
-          const timeMatch = dateText.match(/(\d{2})[:\.](\d{2}) Uhr/);
+          const timeMatch = dateTextRaw.match(/(\d{2})[:\.](\d{2}) Uhr/);
           const hour = timeMatch ? timeMatch[1] : '00';
           const minute = timeMatch ? timeMatch[2] : '00';
 
@@ -68,9 +70,9 @@ const fetchMatchData = async () => {
       if (preSaleDate && preSaleDate.isValid) {
         let description = '';
         if (isRange && homeTeam === 'HSV') {
-          description = `Heimspiel gegen ${awayTeam} im Zeitraum: ${dateText}`;
+          description = `Heimspiel gegen ${awayTeam} im Zeitraum: ${dateTextRaw}`;
         } else if (isRange) {
-          description = `Auswärtsspiel gegen ${homeTeam} im Zeitraum: ${dateText}`;
+          description = `Auswärtsspiel gegen ${homeTeam} im Zeitraum: ${dateTextRaw}`;
         } else if (homeTeam === 'HSV') {
           description = `Heimspiel gegen ${awayTeam} am ${matchDateInfo?.toFormat('dd.MM.yyyy')} um ${matchTime}`;
         } else {
