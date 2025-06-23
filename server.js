@@ -33,21 +33,32 @@ const fetchMatchData = async () => {
       let matchTime = 'unbekannt';
 
       if (!isRange) {
-        const dateMatch = dateTextRaw.match(/(\d{2})\.(\d{2})\.(\d{2,4})/);
+        const cleanedDateText = dateTextRaw.replace(/(\d{2})(\d{2}) Uhr/, '$1 $2 Uhr');
+
+        // Datum extrahieren
+        const dateMatch = cleanedDateText.match(/(\d{2})\.(\d{2})\.(\d{2,4})/);
         if (dateMatch) {
           const [, day, month, year] = dateMatch;
           const fullYear = year.length === 2 ? `20${year}` : year;
 
-          const timeMatch = dateTextRaw.match(/(\d{2})[:\.](\d{2}) Uhr/);
-          const hour = timeMatch ? timeMatch[1] : '00';
-          const minute = timeMatch ? timeMatch[2] : '00';
+          // Uhrzeit separat extrahieren (16 Uhr, 16:00 Uhr, 16.00 Uhr)
+          const timeMatch = cleanedDateText.match(/(\d{1,2})(?:[:\.](\d{2}))?\s?Uhr/);
+
+          const hour = timeMatch ? parseInt(timeMatch[1], 10) : 0;
+          const minute = timeMatch && timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
 
           matchDateInfo = DateTime.fromObject(
-            { day: +day, month: +month, year: +fullYear, hour: +hour, minute: +minute },
+            { day: +day, month: +month, year: +fullYear, hour, minute },
             { zone: 'Europe/Berlin' }
           );
 
-          matchTime = matchDateInfo.toFormat('HH:mm');
+          if (matchDateInfo.isValid) {
+            if (timeMatch) {
+              matchTime = matchDateInfo.toFormat('HH:mm');
+            } else {
+              matchTime = 'keine Uhrzeit';
+            }
+          }
         }
       }
 
@@ -72,9 +83,9 @@ const fetchMatchData = async () => {
         } else if (isRange) {
           description = `Auswärtsspiel gegen ${homeTeam} im Zeitraum: ${dateTextRaw}`;
         } else if (homeTeam === 'HSV') {
-          description = `Heimspiel gegen ${awayTeam} am ${matchDateInfo?.toFormat('dd.MM.yyyy')} um ${matchTime}`;
+          description = `Heimspiel gegen ${awayTeam} am ${matchDateInfo?.toFormat('dd.MM.yyyy')}` + (matchTime !== 'keine Uhrzeit' ? ` um ${matchTime}` : '');
         } else {
-          description = `Auswärtsspiel gegen ${homeTeam} am ${matchDateInfo?.toFormat('dd.MM.yyyy')} um ${matchTime}`;
+          description = `Auswärtsspiel gegen ${homeTeam} am ${matchDateInfo?.toFormat('dd.MM.yyyy')}` + (matchTime !== 'keine Uhrzeit' ? ` um ${matchTime}` : '');
         }
 
         matches.push({
