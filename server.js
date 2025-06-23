@@ -15,10 +15,10 @@ const fetchMatchData = async () => {
 
     $('table tbody tr').each((index, element) => {
       const cells = $(element).find('td');
-      const dateTextRaw = $(cells[1]).text().trim().replace(/\s+/g, ' ');
-      const homeTeam = $(cells[2]).text().trim();
-      const awayTeamCell = $(cells[4]).text().trim();
-      const preSaleText = $(cells[5]).text().trim();
+      const dateTextRaw = $(cells[0]).text().trim().replace(/\s+/g, ' ');
+      const homeTeam = $(cells[1]).text().trim();
+      const awayTeamCell = $(cells[3]).text().trim();
+      const preSaleText = $(cells[4]).text().trim();
 
       if (!homeTeam.includes('HSV') && !awayTeamCell.includes('HSV')) return;
       if (preSaleText.includes('Ausverkauft') || preSaleText.includes('Hier buchen') || preSaleText.includes('Infos folgen')) return;
