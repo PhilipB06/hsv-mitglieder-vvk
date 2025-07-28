@@ -33,15 +33,19 @@ const fetchMatchData = async () => {
       let matchTime = 'unbekannt';
 
       if (!isRange) {
-        const cleanedDateText = dateTextRaw.replace(/(\d{2})(\d{2}) Uhr/, '$1 $2 Uhr');
+        let cleanedDateText = dateTextRaw.replace(
+          /(\d{2}\.\d{2}\.\d{2})(\d{1,2}[.:]\d{2})/,
+          '$1 $2'
+        );
+        cleanedDateText = cleanedDateText.replace(/(\d{2})(\d{2}) Uhr/, '$1 $2 Uhr');
 
         // Datum extrahieren
-        const dateMatch = cleanedDateText.match(/(\d{2})\.(\d{2})\.(\d{2,4})/);
+        const dateMatch = cleanedDateText.match(/(\d{2})\.(\d{2})\.(\d{2})/);
         if (dateMatch) {
           const [, day, month, year] = dateMatch;
-          const fullYear = year.length === 2 ? `20${year}` : year;
+          const fullYear = `20${year}`;
 
-          // Uhrzeit separat extrahieren (16 Uhr, 16:00 Uhr, 16.00 Uhr)
+          // Uhrzeit extrahieren
           const timeMatch = cleanedDateText.match(/(\d{1,2})(?:[:\.](\d{2}))?\s?Uhr/);
 
           const hour = timeMatch ? parseInt(timeMatch[1], 10) : 0;
@@ -83,9 +87,9 @@ const fetchMatchData = async () => {
         } else if (isRange) {
           description = `Auswärtsspiel gegen ${homeTeam} im Zeitraum: ${dateTextRaw}`;
         } else if (homeTeam === 'HSV') {
-          description = `Heimspiel gegen ${awayTeam} am ${matchDateInfo?.toFormat('dd.MM.yyyy')}` + (matchTime !== 'keine Uhrzeit' ? ` um ${matchTime}` : '');
+          description = `Heimspiel gegen ${awayTeam} am ${matchDateInfo?.toFormat('dd.MM.yy')}` + (matchTime !== 'keine Uhrzeit' ? ` um ${matchTime}` : '');
         } else {
-          description = `Auswärtsspiel gegen ${homeTeam} am ${matchDateInfo?.toFormat('dd.MM.yyyy')}` + (matchTime !== 'keine Uhrzeit' ? ` um ${matchTime}` : '');
+          description = `Auswärtsspiel gegen ${homeTeam} am ${matchDateInfo?.toFormat('dd.MM.yy')}` + (matchTime !== 'keine Uhrzeit' ? ` um ${matchTime}` : '');
         }
 
         matches.push({
