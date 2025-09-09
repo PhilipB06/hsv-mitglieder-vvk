@@ -96,7 +96,7 @@ const fetchMatchData = async () => {
           start: preSaleDate.toJSDate(),
           end: preSaleDate.plus({ hours: 1 }).toJSDate(),
           summary: `VVK: ${homeTeam} - ${awayTeam}`,
-          description: description,
+          description
         });
       }
     });
@@ -112,7 +112,21 @@ app.get('/cal.ics', async (req, res) => {
   const matchData = await fetchMatchData();
   const calendar = ical({ name: 'HSV - Vorverkauf' });
 
-  matchData.forEach(event => calendar.createEvent(event));
+  matchData.forEach(eventData => {
+    const event = calendar.createEvent({
+      start: eventData.start,
+      end: eventData.end,
+      summary: eventData.summary,
+      description: eventData.description,
+      url: 'https://www.ticket-onlineshop.com/ols/hsv-heimspiele/de/heimspiele/channel/shop/index'
+    });
+
+    event.createAlarm({
+      type: 'display',
+      trigger: 900,
+      description: 'Vorverkauf startet in 15 Minuten!'
+    }).relatesTo('START');
+  });
 
   res.setHeader('Content-Type', 'text/calendar');
   res.setHeader('Content-Disposition', 'attachment; filename=HSV_Vorverkauf.ics');
