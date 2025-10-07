@@ -120,6 +120,12 @@ app.get('/cal.ics', async (req, res) => {
       description: eventData.description,
       url: 'https://www.ticket-onlineshop.com/ols/hsv-heimspiele/de/heimspiele/channel/shop/index'
     });
+    
+    event.createAlarm({
+      type: 'display',
+      trigger: 3600,
+      description: 'Vorverkauf startet in 1 Stunde!'
+    }).relatesTo('START');
 
     event.createAlarm({
       type: 'display',
