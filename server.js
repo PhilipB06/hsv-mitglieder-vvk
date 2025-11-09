@@ -21,7 +21,9 @@ const fetchMatchData = async () => {
       const preSaleText = $(cells[4]).text().trim();
 
       if (!homeTeam.includes('HSV') && !awayTeamCell.includes('HSV')) return;
-      if (preSaleText.includes('Ausverkauft') || preSaleText.includes('Hier buchen') || preSaleText.includes('Infos folgen')) return;
+      if (preSaleText.includes('Ausverkauft') || preSaleText.includes('Hier buchen')) return;
+      const mitglBlock = preSaleText.match(/Mitgl\.-VVK:[\s\S]*?(?=(?:DK-VVK:|Freier VVK:|Kein freier VVK|$))/)?.[0] ?? '';
+      if (/Mitgl\.-VVK:\s*(Infos folgen|folgt)\b/i.test(mitglBlock)) return;
 
       const awayTeam = awayTeamCell.replace('Ticketinfos', '').trim();
 
@@ -67,12 +69,12 @@ const fetchMatchData = async () => {
       }
 
       // Vorverkaufsdatum parsen
-      const preSaleMatch = preSaleText.match(/Mitgl.-VVK: (\d{2})\.(\d{2})\.(\d{2,4})(?: ab (\d{2}:\d{2}))?/);
+      const preSaleMatch = preSaleText.match(/Mitgl.-VVK:\s*(\d{2})\.(\d{2})\.(\d{2,4})(?:\s*(?:ab\s*)?[\(\s]*(\d{1,2}(?::\d{2})?)\s*Uhr[\)]?)?/);
       let preSaleDate = null;
       if (preSaleMatch) {
         const [, preDay, preMonth, preYear, preTime] = preSaleMatch;
         const fullPreYear = preYear.length === 2 ? `20${preYear}` : preYear;
-        const [hour, minute] = preTime ? preTime.split(':') : ['10', '00'];
+        const [hour, minute = '00'] = preTime ? preTime.split(':') : ['10', '00'];
 
         preSaleDate = DateTime.fromObject(
           { day: +preDay, month: +preMonth, year: +fullPreYear, hour: +hour, minute: +minute },
